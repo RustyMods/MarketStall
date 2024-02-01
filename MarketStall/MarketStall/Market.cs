@@ -1,0 +1,149 @@
+﻿using System.Collections.Generic;
+using System.Globalization;
+using BepInEx;
+using MarketStall.UI;
+using MarketStall.Utility;
+using UnityEngine;
+using YamlDotNet.Serialization;
+
+namespace MarketStall.MarketStall;
+
+public class Market : MonoBehaviour, Hoverable, Interactable
+{
+    public static readonly int _MarketName = "marketname".GetStableHashCode();
+    private static readonly int _MarketData = "marketdata".GetStableHashCode();
+    public static readonly int _MarketValue = "marketvalue".GetStableHashCode();
+
+    private static readonly Vector3 SpawnDistance = new(0f, 0f, 1f);
+
+    private ZNetView _znv = null!;
+    
+    public static List<MarketData.MarketTradeItem> GetMarketData(ZNetView znv)
+    {
+        string data = znv.GetZDO().GetString(_MarketData);
+        if (data.IsNullOrWhiteSpace()) return new();
+        try
+        {
+            IDeserializer deserializer = new DeserializerBuilder().Build();
+            return deserializer.Deserialize<List<MarketData.MarketTradeItem>>(data);
+        }
+        catch
+        {
+            return new();
+        }
+    }
+
+    private void UpdateMarket(long sender, string data) => _znv.GetZDO().Set(_MarketData, data);
+
+    private void UpdateRevenue(long sender, int value) => _znv.GetZDO().Set(_MarketValue, value);
+    
+    private string Owner
+    {
+        get => _znv.m_zdo.GetString(_MarketName);
+        set => _znv.m_zdo.Set(_MarketName, value);
+    }
+    private void Awake()
+    {
+        _znv = GetComponent<ZNetView>();
+        if (!_znv.IsValid()) return;
+        if (_znv.IsOwner() && Owner.IsNullOrWhiteSpace())
+        {
+            Owner = Player.m_localPlayer.GetPlayerName();
+        }
+
+        _znv.Register<string>(nameof(UpdateMarket),UpdateMarket);
+        _znv.Register<int>(nameof(UpdateRevenue),UpdateRevenue);
+    }
+
+    public static void AddMarketItem(ItemDrop item, ItemDrop currency, ItemDrop.ItemData ItemData, int stack, int price, ZNetView znv)
+    {
+        if (!znv.IsOwner()) return;
+        List<MarketData.MarketTradeItem> data = GetMarketData(znv);
+        data.Add(new ()
+        {
+            m_prefab = item.name,
+            m_price = price,
+            m_stack = stack,
+            m_quality = ItemData.m_quality,
+            m_crafter = ItemData.m_crafterName,
+            m_currency = currency.name
+        }); 
+        ISerializer serializer = new SerializerBuilder().Build();
+        string MarketData = serializer.Serialize(data);
+        znv.InvokeRPC(nameof(UpdateMarket), MarketData);
+    }
+
+    public static bool BuyMarketItem(ZNetView znv, MarketData.MarketTradeItem MarketItem)
+    {
+        List<MarketData.MarketTradeItem> data = GetMarketData(znv);
+        MarketData.MarketTradeItem match = data.Find(x => x.m_prefab == MarketItem.m_prefab && x.m_quality == MarketItem.m_quality && x.m_stack == MarketItem.m_stack);
+        if (match == null) return false;
+        if (!data.Remove(match)) return false;
+        ISerializer serializer = new SerializerBuilder().Build();
+        string MarketData = serializer.Serialize(data);
+        znv.InvokeRPC(nameof(UpdateMarket), MarketData);
+        AddRevenue(znv, MarketItem.m_price);
+        return true;
+    }
+
+    public static bool CollectValue(ZNetView znv) 
+    {
+        int value = znv.GetZDO().GetInt(_MarketValue);
+        if (value <= 0) return false;
+        GameObject item = Methods.TryGetPrefab(MarketStallPlugin._Currency.Value);
+        if (item.TryGetComponent(out ItemDrop component))
+        {
+            int MaxStackSize = component.m_itemData.m_shared.m_maxStackSize;
+            int ExtractableValue = Mathf.Min(value, MaxStackSize);
+            if (!Player.m_localPlayer.GetInventory().AddItem(item, ExtractableValue))
+            {
+                GameObject spawn = Instantiate(item, Player.m_localPlayer.transform.position + SpawnDistance, Quaternion.identity);
+                if (spawn.TryGetComponent(out ItemDrop itemDrop)) itemDrop.m_itemData.m_stack = MaxStackSize;
+            }
+
+            Marketplace.RevenueValue.text = (value - ExtractableValue).ToString(CultureInfo.CurrentCulture);
+            znv.InvokeRPC(nameof(UpdateRevenue), value - ExtractableValue);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void AddRevenue(ZNetView znv, int amount)
+    {
+        int CurrentValue = znv.GetZDO().GetInt(_MarketValue);
+        znv.InvokeRPC(nameof(UpdateRevenue), CurrentValue + amount);
+    }
+
+    public string GetHoverText()
+    {
+        if (GetComponent<Piece>().IsCreator())
+        {
+            return Localization.instance.Localize("<b>$market_label</b>")
+                   + "\n"
+                   + Localization.instance.Localize("[<color=yellow><b>$KEY_Use</b></color>] $market_sell")
+                   + "\n"
+                   + Localization.instance.Localize("[<color=yellow><b>L.Shift + $KEY_Use</b></color>] $market_buy");
+        }
+
+        return Localization.instance.Localize("$market_owner") + ": " + Owner
+               + "\n"
+               + Localization.instance.Localize("[<color=yellow><b>$KEY_Use</b></color>] $market_buy");
+    }
+
+    public string GetHoverName() => Localization.instance.Localize($"{Owner} $market_label");
+
+    public bool Interact(Humanoid user, bool hold, bool alt)
+    {
+        if (hold) return false;
+        if (alt)
+        {
+            Marketplace.ShowGUI(_znv, false);
+            return true;
+        }
+        Marketplace.ShowGUI(_znv, GetComponent<Piece>().IsCreator());
+        return true;
+    }
+
+    public bool UseItem(Humanoid user, ItemDrop.ItemData item) => false;
+}

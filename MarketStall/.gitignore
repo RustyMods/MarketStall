@@ -1,0 +1,8 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+MarketStall.sln.DotSettings.user
+.idea
+.vs
