@@ -16,7 +16,7 @@ namespace MarketStall
     public class MarketStallPlugin : BaseUnityPlugin
     {
         internal const string ModName = "MarketStall";
-        internal const string ModVersion = "1.0.0";
+        internal const string ModVersion = "1.0.2";
         internal const string Author = "RustyMods";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -61,6 +61,10 @@ namespace MarketStall
         public static ConfigEntry<int> _MinimumFee = null!;
 
         public static ConfigEntry<Toggle> _TransparentBackground = null!;
+        public static ConfigEntry<int> _MessageIncrement = null!;
+        public static ConfigEntry<MessageColor> _MessageColor = null!;
+
+        public enum MessageColor{White, Orange, Yellow, Red, Green}
         #endregion
         private void InitConfigs()
         {
@@ -83,6 +87,11 @@ namespace MarketStall
 
             _TransparentBackground = config("1 - General", "Transparent Background", Toggle.Off,
                 "If on, market background is transparent");
+            _MessageIncrement = config("1 - General", "Message Position", 20,
+                new ConfigDescription("Set the position of heads up message, higher number lowers placement",
+                    new AcceptableValueRange<int>(0, 40)), false);
+            _MessageColor = config("1 - General", "Message Color", MessageColor.Orange,
+                "Set the color of the pop-up message", false);
 
         }
         #region Config Methods

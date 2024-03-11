@@ -59,6 +59,8 @@ public class Market : MonoBehaviour, Hoverable, Interactable
     {
         if (!znv.IsOwner()) return;
         List<MarketData.MarketTradeItem> data = GetMarketData(znv);
+        ISerializer serializer = new SerializerBuilder().Build();
+        var customData = serializer.Serialize(ItemData.m_customData);
         data.Add(new ()
         {
             m_prefab = item.name,
@@ -66,9 +68,9 @@ public class Market : MonoBehaviour, Hoverable, Interactable
             m_stack = stack,
             m_quality = ItemData.m_quality,
             m_crafter = ItemData.m_crafterName,
-            m_currency = currency.name
+            m_currency = currency.name,
+            m_customData = customData
         }); 
-        ISerializer serializer = new SerializerBuilder().Build();
         string MarketData = serializer.Serialize(data);
         znv.InvokeRPC(nameof(UpdateMarket), MarketData);
     }

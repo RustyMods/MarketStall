@@ -133,8 +133,8 @@
         <None Include="App.config" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="..\..\..\evennewerbundles\marketstallbundle">
-          <Link>assets\marketstallbundle</Link>
+        <EmbeddedResource Include="..\..\..\bundles_custom\marketstallbundle2">
+          <Link>assets\marketstallbundle2</Link>
         </EmbeddedResource>
         <Content Include=".gitignore" />
         <Content Include="environment.props" />

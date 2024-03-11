@@ -138,10 +138,7 @@ public static class Patches
     [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Hide))]
     private static class InventoryGUIHidePatch
     {
-        private static bool Prefix()
-        {
-            return !Marketplace.IsMarketVisible();
-        }
+        private static bool Prefix() => !Marketplace.IsMarketVisible();
     }
 
     [HarmonyPatch(typeof(PlayerController), nameof(PlayerController.FixedUpdate))]

@@ -6,6 +6,7 @@ using MarketStall.MarketStall;
 using MarketStall.Utility;
 using UnityEngine;
 using UnityEngine.UI;
+using YamlDotNet.Serialization;
 using Object = UnityEngine.Object;
 
 namespace MarketStall.UI;
@@ -33,8 +34,7 @@ public static class Marketplace
         float value = znv.GetZDO().GetInt(Market._MarketValue);
         RevenueValue.text = value.ToString("0");
     }
-    public static void ToggleMarketGUI() => MarketGUI.SetActive(!IsMarketVisible());
-
+    public static void ToggleMarketGUI() => MarketGUI.SetActive(!IsMarketVisible()); 
     public static void ShowGUI(ZNetView znv, bool isCreator)
     {
         MarketGUI.SetActive(true);
@@ -51,7 +51,6 @@ public static class Marketplace
         string name = znv.GetZDO().GetString(Market._MarketName);
         MarketTitle.text = Localization.instance.Localize($"{name} $market_label");
     }
-
     private static void OpenMarket(ZNetView znv, Humanoid user, bool isCreator)
     {
         if (znv == null || !znv.IsValid()) return;
@@ -65,7 +64,6 @@ public static class Marketplace
         }
     }
     public static bool IsMarketVisible() => MarketGUI && MarketGUI.activeInHierarchy;
-    
     public static void UpdateSellMarket(ZNetView znv, Humanoid user, string filter = "")
     {
         DestroyMarketItems();
@@ -100,16 +98,12 @@ public static class Marketplace
             {
                 SellButton.onClick.AddListener(() =>
                 {
-                    if (!data.m_dropPrefab)
-                    {
-                        user.Message(MessageHud.MessageType.Center, "Failed to get drop prefab for " + Localization.instance.Localize(data.m_shared.m_name));
-                        return;
-                    };
+                    if (!data.m_dropPrefab) return;
                     if (!data.m_dropPrefab.TryGetComponent(out ItemDrop component)) return;
                     int MarketCount = Market.GetMarketData(CurrentMarket).Count;
                     if (MarketCount >= MarketStallPlugin._MaxSales.Value)
                     {
-                        user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$maximum_items"));
+                        Methods.ShowMessage(user, "<color=red>$maximum_items</color>");
                         return;
                     }
 
@@ -143,20 +137,21 @@ public static class Marketplace
             int fee = Mathf.Max(Mathf.CeilToInt(cost * (MarketStallPlugin._Fee.Value / 100f)), MarketStallPlugin._MinimumFee.Value);
             if (!inventory.HaveItem(currency.m_itemData.m_shared.m_name))
             {
-                user.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"$require_a_fee {fee} {LocalizedCurrency}"));
+                Methods.ShowMessage(user, $"$require_a_fee {fee} {LocalizedCurrency}", item.m_itemData.GetIcon());
                 return false;
             }
 
             ItemDrop.ItemData prefab = inventory.GetItem(currency.m_itemData.m_shared.m_name, isPrefabName: false);
             if (prefab.m_stack < fee)
             {
-                user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$not_enough") + " " + LocalizedCurrency + $" : {fee} / {prefab.m_stack}");
+                Methods.ShowMessage(user, $"$not_enough {LocalizedCurrency}: {fee}/{prefab.m_stack}", item.m_itemData.GetIcon());
                 return false;
             }
 
             inventory.RemoveItem(currency.m_itemData.m_shared.m_name, fee);
-            user.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"$market_placed {LocalizedItem} $market_x {stack} $market_for_a_fee {fee}"));
+            Methods.ShowMessage(user, $"$market_placed {LocalizedItem} $market_x {stack} $market_for_a_fee {fee}", item.m_itemData.GetIcon());
         }
+
         inventory.RemoveItem(item.m_itemData.m_shared.m_name, stack, data.m_quality);
         Market.AddMarketItem(item, currency, data, stack, cost, znv);
         return true;
@@ -202,36 +197,37 @@ public static class Marketplace
         string currencyName = Localization.instance.Localize(currency.m_itemData.m_shared.m_name);
         if (!user.GetInventory().HaveItem(currency.m_itemData.m_shared.m_name))
         {
-            user.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"$market_you_need {currencyName} $market_to_purchase"));
+            Methods.ShowMessage(user, $"$market_you_need {currencyName} $market_to_purchase", currency.m_itemData.GetIcon());
             return false;
         };
         string itemName = Localization.instance.Localize(item.m_itemData.m_shared.m_name);
         int userCurrency = user.GetInventory().GetItem(currency.m_itemData.m_shared.m_name, isPrefabName: false).m_stack;
         if (userCurrency < data.m_price)
         {
-            user.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"$you_do_not_have_enough {currencyName} $market_to_purchase"));
+            Methods.ShowMessage(user, $"$you_do_not_have_enough {currencyName} $market_to_purchase", currency.m_itemData.GetIcon());
             return false;
         }
 
         if (!user.GetInventory().HaveEmptySlot())
         {
-            user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$your_inventory_is_full"));
+            Methods.ShowMessage(user, "$your_inventory_is_full");
             return false;
         }
         ItemDrop.ItemData PurchasedItem = user.GetInventory().AddItem(item.name, data.m_stack, data.m_quality, item.m_itemData.m_variant, 0L, data.m_crafter);
         if (PurchasedItem == null) return false;
+        var deserializer = new DeserializerBuilder().Build();
+        var customData = deserializer.Deserialize<Dictionary<string, string>>(data.m_customData);
+        PurchasedItem.m_customData = customData;
         
-        user.Message(MessageHud.MessageType.Center, Localization.instance.Localize($"$market_you_purchased {itemName} $market_for {data.m_price} {currencyName}"));
+        Methods.ShowMessage(user, $"$market_you_purchased {itemName} $market_for {data.m_price} {currencyName}", item.m_itemData.GetIcon());
         user.GetInventory().RemoveItem(currency.m_itemData.m_shared.m_name, data.m_price);
 
         return Market.BuyMarketItem(znv, data);
     }
-
     private static void DestroyMarketItems()
     {
         foreach(Transform child in ListRoot) Object.Destroy(child.gameObject);
     }
-    
     private static void SetMarketGUI(InventoryGui instance)
     {
         if (!instance) return;
@@ -303,16 +299,39 @@ public static class Marketplace
         MarketBackground = MarketGUI.transform.Find("Panel").GetComponent<Image>();
         MarketBackground.material = vanillaBackground.material;
         PartFilter.GetComponent<Image>().material = vanillaBackground.material;
+
+        Font? NorseFont = GetFont("Norse");
+        Font? NorseBold = GetFont("Norsebold");
+        
+        Text[] MarketGUITexts = MarketGUI.GetComponentsInChildren<Text>();
+        Text[] BuyItemTexts = m_BuyItem.GetComponentsInChildren<Text>();
+        Text[] SellItemTexts = m_SellItem.GetComponentsInChildren<Text>();
+        
+        UpdateTextComponents(MarketGUITexts, NorseBold, NorseFont);
+        UpdateTextComponents(BuyItemTexts, NorseBold, NorseFont);
+        UpdateTextComponents(SellItemTexts, NorseBold, NorseFont);
+        
     }
 
-    private static void HideGUI() => MarketGUI.SetActive(false);
+    private static void UpdateTextComponents(Text[] array, Font? NorseBold, Font? NorseFont)
+    {
+        foreach (Text text in array)
+        {
+            text.font = text.name == "$part_title" ? NorseBold : NorseFont;
+        }
+    }
 
+    private static Font? GetFont(string name)
+    {
+        Font[]? fonts = Resources.FindObjectsOfTypeAll<Font>();
+        return fonts.FirstOrDefault(x => x.name == name);
+    }
+    private static void HideGUI() => MarketGUI.SetActive(false);
     private static void CollectRevenue()
     {
         if (!Market.CollectValue(CurrentMarket)) return;
         UpdateSellMarket(CurrentMarket, Player.m_localPlayer);
     }
-
     private static void OnFilterChange(string input)
     {
         if (MarketTypeIs is MarketType.Buy)

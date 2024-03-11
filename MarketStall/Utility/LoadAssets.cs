@@ -11,7 +11,7 @@ public static class LoadAssets
 
     public static void InitAssetBundle()
     {
-        _assets = GetAssetBundle("marketstallbundle");
+        _assets = GetAssetBundle("marketstallbundle2");
     }
 
     private static AssetBundle GetAssetBundle(string fileName)

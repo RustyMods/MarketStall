@@ -1,9 +1,11 @@
 ﻿# Market Stalls
 A buildable market to sell your goods at any time.
 ## Changelog
-| `Version`  | `Update Notes`    |
-|------------|-------------------|
-| 1.0.0      | - Initial release |
+| `Version` | `Update Notes`            |
+|-----------|---------------------------|
+| 1.0.0     | - Initial release         |
+| 1.0.1     | - Tweaked pop-up messages |
+
 ## Features
 - Buildable Market
 - Owners can put items up for sale
