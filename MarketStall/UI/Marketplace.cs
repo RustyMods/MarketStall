@@ -307,13 +307,13 @@ public static class Marketplace
         Text[] BuyItemTexts = m_BuyItem.GetComponentsInChildren<Text>();
         Text[] SellItemTexts = m_SellItem.GetComponentsInChildren<Text>();
         
-        UpdateTextComponents(MarketGUITexts, NorseBold, NorseFont);
-        UpdateTextComponents(BuyItemTexts, NorseBold, NorseFont);
-        UpdateTextComponents(SellItemTexts, NorseBold, NorseFont);
+        AddFonts(MarketGUITexts, NorseBold, NorseFont);
+        AddFonts(BuyItemTexts, NorseBold, NorseFont);
+        AddFonts(SellItemTexts, NorseBold, NorseFont);
         
     }
 
-    private static void UpdateTextComponents(Text[] array, Font? NorseBold, Font? NorseFont)
+    private static void AddFonts(Text[] array, Font? NorseBold, Font? NorseFont)
     {
         foreach (Text text in array)
         {

@@ -16,7 +16,7 @@ namespace MarketStall
     public class MarketStallPlugin : BaseUnityPlugin
     {
         internal const string ModName = "MarketStall";
-        internal const string ModVersion = "1.0.2";
+        internal const string ModVersion = "1.0.4";
         internal const string Author = "RustyMods";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";

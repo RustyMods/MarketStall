@@ -9,7 +9,7 @@ namespace MarketStall.Utility;
 
 public static class Filters
 {
-    public static readonly CustomSyncedValue<List<string>> ServerIgnoreList = new(MarketStallPlugin.ConfigSync, "ServerIgnoreList", new());
+    public static readonly CustomSyncedValue<List<string>> ServerIgnoreList = new(MarketStallPlugin.ConfigSync, "MarketStallServerIgnoreList", new());
 
     private static readonly string MarketFolderPath = Paths.ConfigPath + Path.DirectorySeparatorChar + "MarketStall";
     private static readonly string IgnoreListPath = MarketFolderPath + Path.DirectorySeparatorChar + "IgnoreList.yml";
@@ -32,7 +32,7 @@ public static class Filters
             
             ServerIgnoreList.Value = ValidateIgnoreList();
             
-            FileSystemWatcher FilterWatcher = new FileSystemWatcher()
+            FileSystemWatcher FilterWatcher = new FileSystemWatcher(MarketFolderPath)
             {
                 Filter = "*.yml",
                 EnableRaisingEvents = true,
