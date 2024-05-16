@@ -1,4 +1,5 @@
 ﻿using MarketStall.MarketStall;
+using PieceManager;
 
 namespace MarketStall.Managers;
 
