@@ -1,10 +1,13 @@
-﻿using MarketStall.MarketStall;
+﻿using System.Collections.Generic;
+using HarmonyLib;
+using MarketStall.MarketStall;
 using PieceManager;
 
 namespace MarketStall.Managers;
 
 public static class MarketStallPieces
 {
+    private static readonly List<string> m_pieceNames = new();
     public static void InitPieces()
     {
         // Globally turn off configuration options for your pieces, omit if you don't want to do this.
@@ -22,6 +25,7 @@ public static class MarketStallPieces
         MaterialReplacer.RegisterGameObjectForMatSwap(MarketStall.Prefab);
         PieceEffectManager.PrefabsToSet.Add(MarketStall.Prefab);
         MarketStall.Prefab.AddComponent<Market>();
+        m_pieceNames.Add(MarketStall.Prefab.name);
         
         BuildPiece MarketStall2 = new("marketstallbundle2", "MarketStall_Small");
         MarketStall2.Name.English("Market Stall Mini");
@@ -35,5 +39,8 @@ public static class MarketStallPieces
         MaterialReplacer.RegisterGameObjectForMatSwap(MarketStall2.Prefab);
         PieceEffectManager.PrefabsToSet.Add(MarketStall2.Prefab);
         MarketStall2.Prefab.AddComponent<Market>();
+        m_pieceNames.Add(MarketStall2.Prefab.name);
     }
+
+    public static bool isMarketStall(string name) => m_pieceNames.Contains(name);
 }

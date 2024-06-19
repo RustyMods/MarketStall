@@ -1,10 +1,17 @@
 ﻿# Market Stalls
 A buildable market to sell your goods at any time.
 ## Changelog
-| `Version` | `Update Notes`            |
-|-----------|---------------------------|
-| 1.0.0     | - Initial release         |
-| 1.0.1     | - Tweaked pop-up messages |
+| `Version` | `Update Notes`                                                                                     |
+|-----------|----------------------------------------------------------------------------------------------------|
+| 1.0.0     | - Initial release                                                                                  |
+| 1.0.1     | - Tweaked pop-up messages                                                                          |
+| 1.0.2     | - Compatibility with JewelCraft, Valheim Enchantment System, EpicLoot and new smaller market stall |
+| 1.0.3     | - Changed key name of server ignore list for compatibility with almanac                            |
+| 1.0.4     | - tweak to ignore list                                                                             |
+| 1.0.5     | - Shader/Material fixes                                                                            |
+| 1.0.6     | - Updated material replacer                                                                        |
+| 1.0.7     | - piece manager update                                                                             |
+| 1.0.8     | - Fixed destruction of market stall not saving custom data from mods                               |
 
 ## Features
 - Buildable Market
@@ -23,18 +30,18 @@ A buildable market to sell your goods at any time.
 - Market Piece recipe
 ### Notes
 - Character limit of price entry is determined by max stack size of currency item
-  
-    ( ex: Coins max stack size is 999, thus max amount to put an item for sale is 999 )
 
-    ( ex: Amber max stack size is 10, thus max amount to put an item for sale is 99 )
-  
-    This is to avoid users input being too large
+  ( ex: Coins max stack size is 999, thus max amount to put an item for sale is 999 )
+
+  ( ex: Amber max stack size is 10, thus max amount to put an item for sale is 99 )
+
+  This is to avoid users input being too large
 - Organize your player inventory to display available items to put up for sale in the stack size you desire
 - Revenue is dispersed in increments of max stack size of currency
-  
-    ( ex: Coins max stack size is 999, thus you can only extract 999 coins at a time )
-  
-    ( ex: Amber max stack size is 10, thus you can only extract 10 amber at a time )
+
+  ( ex: Coins max stack size is 999, thus you can only extract 999 coins at a time )
+
+  ( ex: Amber max stack size is 10, thus you can only extract 10 amber at a time )
 
 ![](https://i.imgur.com/vygiCoK.png)
 ![](https://i.imgur.com/GQ4QWbf.png)
@@ -50,4 +57,3 @@ A buildable market to sell your goods at any time.
     <img src="https://i.imgur.com/rbNygUc.png" alt="" width="150">
     <img src="https://i.imgur.com/VZfZR0k.png" alt="https://www.buymeacoffee.com/peimalcolm2" width="150">
 </div>
-
