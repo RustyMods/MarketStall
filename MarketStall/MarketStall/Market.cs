@@ -14,10 +14,12 @@ public class Market : MonoBehaviour, Hoverable, Interactable
     private static readonly int _MarketData = "marketdata".GetStableHashCode();
     public static readonly int _MarketValue = "marketvalue".GetStableHashCode();
 
-    private static readonly Vector3 SpawnDistance = new(0f, 0f, 1f);
-
-    private ZNetView _znv = null!;
+    public bool m_inUse;
     
+    private static readonly Vector3 SpawnDistance = new(0f, 0f, 1f);
+    public static Market? m_currentMarket;
+
+    public ZNetView _znv = null!;
     public static List<MarketData.MarketTradeItem> GetMarketData(ZNetView znv)
     {
         string data = znv.GetZDO().GetString(_MarketData);
@@ -32,10 +34,8 @@ public class Market : MonoBehaviour, Hoverable, Interactable
             return new();
         }
     }
-
-    private void UpdateMarket(long sender, string data) => _znv.GetZDO().Set(_MarketData, data);
-
-    private void UpdateRevenue(long sender, int value) => _znv.GetZDO().Set(_MarketValue, value);
+    private void RPC_UpdateMarket(long sender, string data) => _znv.GetZDO().Set(_MarketData, data);
+    private void RPC_UpdateRevenue(long sender, int value) => _znv.GetZDO().Set(_MarketValue, value);
     
     private string Owner
     {
@@ -50,9 +50,9 @@ public class Market : MonoBehaviour, Hoverable, Interactable
         {
             Owner = Player.m_localPlayer.GetPlayerName();
         }
-
-        _znv.Register<string>(nameof(UpdateMarket),UpdateMarket);
-        _znv.Register<int>(nameof(UpdateRevenue),UpdateRevenue);
+        _znv.Register<string>(nameof(RPC_UpdateMarket),RPC_UpdateMarket);
+        _znv.Register<int>(nameof(RPC_UpdateRevenue),RPC_UpdateRevenue);
+        _znv.Register<bool>(nameof(RPC_SetInUse),RPC_SetInUse);
     }
 
     public static void AddMarketItem(ItemDrop item, ItemDrop currency, ItemDrop.ItemData ItemData, int stack, int price, ZNetView znv)
@@ -72,9 +72,8 @@ public class Market : MonoBehaviour, Hoverable, Interactable
             m_customData = customData
         }); 
         string MarketData = serializer.Serialize(data);
-        znv.InvokeRPC(nameof(UpdateMarket), MarketData);
+        znv.InvokeRPC(nameof(RPC_UpdateMarket), MarketData);
     }
-
     public static bool BuyMarketItem(ZNetView znv, MarketData.MarketTradeItem MarketItem)
     {
         List<MarketData.MarketTradeItem> data = GetMarketData(znv);
@@ -83,11 +82,10 @@ public class Market : MonoBehaviour, Hoverable, Interactable
         if (!data.Remove(match)) return false;
         ISerializer serializer = new SerializerBuilder().Build();
         string MarketData = serializer.Serialize(data);
-        znv.InvokeRPC(nameof(UpdateMarket), MarketData);
+        znv.InvokeRPC(nameof(RPC_UpdateMarket), MarketData);
         AddRevenue(znv, MarketItem.m_price);
         return true;
     }
-
     public static bool CollectValue(ZNetView znv) 
     {
         int value = znv.GetZDO().GetInt(_MarketValue);
@@ -104,17 +102,16 @@ public class Market : MonoBehaviour, Hoverable, Interactable
             }
 
             Marketplace.RevenueValue.text = (value - ExtractableValue).ToString(CultureInfo.CurrentCulture);
-            znv.InvokeRPC(nameof(UpdateRevenue), value - ExtractableValue);
+            znv.InvokeRPC(nameof(RPC_UpdateRevenue), value - ExtractableValue);
             return true;
         }
 
         return false;
     }
-
     private static void AddRevenue(ZNetView znv, int amount)
     {
         int CurrentValue = znv.GetZDO().GetInt(_MarketValue);
-        znv.InvokeRPC(nameof(UpdateRevenue), CurrentValue + amount);
+        znv.InvokeRPC(nameof(RPC_UpdateRevenue), CurrentValue + amount);
     }
 
     public string GetHoverText()
@@ -133,19 +130,31 @@ public class Market : MonoBehaviour, Hoverable, Interactable
                + Localization.instance.Localize("[<color=yellow><b>$KEY_Use</b></color>] $market_buy");
     }
 
-    public string GetHoverName() => Localization.instance.Localize($"{Owner} $market_label");
+    public string GetHoverName()
+    {
+        return Localization.instance.Localize($"{Owner} $market_label");
+    }
 
     public bool Interact(Humanoid user, bool hold, bool alt)
     {
         if (hold) return false;
-        if (alt)
+        if (IsInUse())
         {
-            Marketplace.ShowGUI(_znv, false);
-            return true;
+            user.Message(MessageHud.MessageType.Center, "$msg_inuse");
+            return false;
         }
-        Marketplace.ShowGUI(_znv, GetComponent<Piece>().IsCreator());
+        Marketplace.ShowGUI(_znv, !alt && GetComponent<Piece>().IsCreator());
+        _znv.InvokeRPC(nameof(RPC_SetInUse), true);
+        m_currentMarket = this;
         return true;
     }
+
+    public void RPC_SetInUse(long sender, bool use)
+    {
+        m_inUse = use;
+    }
+
+    private bool IsInUse() => m_inUse;
 
     public bool UseItem(Humanoid user, ItemDrop.ItemData item) => false;
 }

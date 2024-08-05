@@ -15,5 +15,6 @@ public static class MarketData
         public string m_crafter = "";
         public string m_currency = null!;
         public string m_customData = "";
+        public string m_merchant = "";
     }
 }

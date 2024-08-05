@@ -74,7 +74,7 @@ public static class Patches
     private static void SpawnCargoCrate(List<MarketData.MarketTradeItem> PieceMarketData, Piece __instance, int i = 0)
     {
         GameObject? Cargo = Object.Instantiate(CacheAssets.CargoCrate, __instance.transform.position, Quaternion.identity);
-        var deserializer = new DeserializerBuilder().Build();
+        IDeserializer deserializer = new DeserializerBuilder().Build();
         if (Cargo == null) return;
         for (int index = i * 4; index < PieceMarketData.Count; index++)
         {
@@ -90,6 +90,8 @@ public static class Patches
             {
                 data.m_customData = deserializer.Deserialize<Dictionary<string, string>>(MarketItem.m_customData);
             }
+            itemDrop.m_itemData = data;
+            data.m_dropPrefab = prefab;
             
             if (Cargo.TryGetComponent(out Container component))
             {
@@ -122,17 +124,26 @@ public static class Patches
     {
         private static void Postfix(Player __instance)
         {
-            if (!Marketplace.IsMarketVisible()) return;
-            if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy) return;
-            Marketplace.UpdateSellMarket(Marketplace.CurrentMarket, __instance);
+            if (Marketplace.IsMarketVisible())
+            {
+                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy) return;
+                Marketplace.UpdateSellMarket(Marketplace.CurrentMarket, __instance);
+            }
+
+            if (Marketplace.IsCommunityMarketVisible())
+            {
+                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy) return;
+                Marketplace.UpdateSellMarket(Marketplace.CurrentCommunityMarket, __instance, "", true);
+            }
         }
     }
 
     public static void UpdateMarketGUI()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && Marketplace.IsMarketVisible())
+        if (Input.GetKeyDown(KeyCode.Escape) && (Marketplace.IsMarketVisible() || Marketplace.IsCommunityMarketVisible()))
         {
-            Marketplace.ToggleMarketGUI();
+            // Marketplace.ToggleMarketGUI();
+            Marketplace.HideGUI();
         } 
     }
     
@@ -142,7 +153,7 @@ public static class Patches
         private static void Postfix(TextInput __instance, ref bool __result)
         {
             if (!__instance) return;
-            __result |= Marketplace.IsMarketVisible();
+            __result |= Marketplace.IsMarketVisible() || Marketplace.IsCommunityMarketVisible();
         }
     }
 
@@ -151,20 +162,20 @@ public static class Patches
     {
         private static void Postfix(ref bool __result)
         {
-            __result |= Marketplace.IsMarketVisible();
+            __result |= Marketplace.IsMarketVisible() || Marketplace.IsCommunityMarketVisible();
         }
     }
 
     [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Hide))]
     private static class InventoryGUIHidePatch
     {
-        private static bool Prefix() => !Marketplace.IsMarketVisible();
+        private static bool Prefix() => !Marketplace.IsMarketVisible() || !Marketplace.IsCommunityMarketVisible();
     }
 
     [HarmonyPatch(typeof(PlayerController), nameof(PlayerController.FixedUpdate))]
     private static class PlayerControllerPatch
     {
-        private static bool Prefix() => !Marketplace.IsMarketVisible();
+        private static bool Prefix() => !Marketplace.IsMarketVisible() || !Marketplace.IsCommunityMarketVisible();
     }
     
     [HarmonyPatch(typeof(Piece), nameof(Piece.CanBeRemoved))]
@@ -174,11 +185,21 @@ public static class Patches
         private static void Postfix(Piece __instance, ref bool __result)
         {
             string PrefabName = Utils.GetPrefabName(__instance.gameObject);
-            if (!MarketStallPieces.isMarketStall(PrefabName)) return;
-            if (!__instance.IsCreator())
+            if (MarketStallPieces.isMarketStall(PrefabName))
             {
-                __result = false;
-                
+                if (!__instance.IsCreator())
+                {
+                    __result = false;
+                    
+                }
+            }
+
+            if (MarketStallPieces.isCommunityMarketStall(PrefabName))
+            {
+                if (!Terminal.m_cheat)
+                {
+                    __result = false;
+                }
             }
         }
     }

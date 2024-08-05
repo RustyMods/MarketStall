@@ -112,12 +112,12 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="MarketStall\CommunityMarket.cs" />
         <Compile Include="MarketStall\Market.cs" />
         <Compile Include="MarketStall\MarketData.cs" />
         <Compile Include="Managers\LocalizationManager.cs" />
         <Compile Include="Managers\MarketStallPieces.cs" />
         <Compile Include="Managers\MaterialReplacer.cs" />
-        <Compile Include="Managers\PieceEffectManager.cs" />
         <Compile Include="Managers\PieceManager.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
@@ -133,7 +133,7 @@
         <None Include="App.config" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="..\..\..\bundles_custom\marketstallbundle2">
+        <EmbeddedResource Include="..\..\..\bundles_2024\marketstallbundle2">
           <Link>assets\marketstallbundle2</Link>
         </EmbeddedResource>
         <Content Include=".gitignore" />

@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -150,6 +150,11 @@ public class BuildPiece
         public ConfigEntry<string> customTable = null!;
     }
 
+    public List<string> PlaceEffects = new();
+    public List<string> HitEffects = new();
+    public List<string> DestroyedEffects = new();
+    public List<string> SwitchEffects = new();
+    public List<string> RandomSpeakEffects = new();
     internal static readonly List<BuildPiece> registeredPieces = new();
     private static readonly Dictionary<Piece, BuildPiece> pieceMap = new();
     internal static Dictionary<BuildPiece, PieceConfig> pieceConfigs = new();
@@ -1789,6 +1794,20 @@ public static class PiecePrefabManager
     {
         foreach (BuildPiece piece in BuildPiece.registeredPieces)
         {
+            AddEffect(piece.PlaceEffects, ref piece.Prefab.GetComponent<Piece>().m_placeEffect);
+
+            if (piece.Prefab.TryGetComponent(out RandomSpeak randomSpeak))
+            {
+                AddEffect(piece.RandomSpeakEffects, ref randomSpeak.m_speakEffects);
+            }
+
+            if (piece.Prefab.TryGetComponent(out WearNTear wearNTear))
+            {
+                AddEffect(piece.DestroyedEffects, ref wearNTear.m_destroyedEffect);
+                AddEffect(piece.HitEffects, ref wearNTear.m_hitEffect);
+                AddEffect(piece.SwitchEffects, ref wearNTear.m_switchEffect);
+            }
+
             foreach (string tool in piece.activeTools)
             {
                 if (__instance.GetItemPrefab(tool)?.GetComponent<ItemDrop>().m_itemData.m_shared.m_buildPieces is { } pieceTable)
@@ -1801,6 +1820,17 @@ public static class PiecePrefabManager
             }
         }
     }
+    
+    private static void AddEffect(List<string> effects, ref EffectList list)
+    {
+        if (effects.Count == 0 || !ZNetScene.instance) return;
+
+        list.m_effectPrefabs = (from name in effects select ZNetScene.instance.GetPrefab(name) into effect where effect select new EffectList.EffectData()
+        {
+            m_prefab = effect, m_enabled = true,
+        }).ToArray();
+    }
+
 }
 
 [PublicAPI]

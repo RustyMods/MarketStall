@@ -131,7 +131,7 @@ namespace PieceManager
                 return replacementMaterial;
             }
 
-            Debug.LogWarning($"No suitable material found to replace: {cleanName}");
+            // Debug.LogWarning($"No suitable material found to replace: {cleanName}");
             return originalMaterial;
         }
 
