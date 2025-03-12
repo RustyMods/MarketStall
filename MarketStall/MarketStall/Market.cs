@@ -67,6 +67,7 @@ public class Market : MonoBehaviour, Hoverable, Interactable
             m_price = price,
             m_stack = stack,
             m_quality = ItemData.m_quality,
+            m_crafterID = ItemData.m_crafterID,
             m_crafter = ItemData.m_crafterName,
             m_currency = currency.name,
             m_customData = customData
@@ -148,6 +149,8 @@ public class Market : MonoBehaviour, Hoverable, Interactable
         m_currentMarket = this;
         return true;
     }
+
+    public void SetInUse(bool use) => _znv.InvokeRPC(nameof(RPC_SetInUse), use);
 
     public void RPC_SetInUse(long sender, bool use)
     {

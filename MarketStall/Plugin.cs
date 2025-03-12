@@ -15,11 +15,11 @@ namespace MarketStall
     public class MarketStallPlugin : BaseUnityPlugin
     {
         internal const string ModName = "MarketStall";
-        internal const string ModVersion = "1.1.2";
+        internal const string ModVersion = "1.1.4";
         internal const string Author = "RustyMods";
         private const string ModGUID = Author + "." + ModName;
-        private static string ConfigFileName = ModGUID + ".cfg";
-        private static string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
+        private static readonly string ConfigFileName = ModGUID + ".cfg";
+        private static readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
         internal static string ConnectionError = "";
         private readonly Harmony _harmony = new(ModGUID);
         public static readonly ManualLogSource MarketStallLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);

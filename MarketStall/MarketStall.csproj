@@ -10,7 +10,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>MarketStall</RootNamespace>
         <AssemblyName>MarketStall</AssemblyName>
-        <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
@@ -113,6 +113,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="MarketStall\CommunityMarket.cs" />
+        <Compile Include="MarketStall\InventoryGUI_Patches.cs" />
         <Compile Include="MarketStall\Market.cs" />
         <Compile Include="MarketStall\MarketData.cs" />
         <Compile Include="Managers\LocalizationManager.cs" />
@@ -121,8 +122,10 @@
         <Compile Include="Managers\PieceManager.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="UI\BuyElement.cs" />
         <Compile Include="UI\CacheAssets.cs" />
         <Compile Include="UI\Marketplace.cs" />
+        <Compile Include="UI\SellElement.cs" />
         <Compile Include="Utility\LoadAssets.cs" />
         <Compile Include="Utility\Methods.cs" />
         <Compile Include="Utility\Patches.cs" />

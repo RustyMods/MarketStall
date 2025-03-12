@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HarmonyLib;
 using MarketStall.MarketStall;
@@ -23,7 +22,7 @@ public static class Marketplace
     public static Text RevenueValue = null!;
     private static Text MarketTitle = null!;
     private static Image MarketBackground = null!;
-    private static GameObject MarketStar = null!;
+    public static GameObject MarketStar = null!;
     public static ZNetView? CurrentMarket;
     
     private static GameObject CommunityMarketGUI = null!;
@@ -122,35 +121,14 @@ public static class Marketplace
             string LocalizedName = Localization.instance.Localize(data.m_shared.m_name);
             if (!LocalizedName.ToLower().Contains(filter.ToLower())) continue;
             GameObject element = Object.Instantiate(community ? m_communitySellItem : m_SellItem, community ? CommunityListRoot : ListRoot);
-            
-            GameObject Currency = Methods.TryGetPrefab(MarketStallPlugin._Currency.Value);
-            if (!Currency.TryGetComponent(out ItemDrop currencyComponent)) continue;
-            Transform StarsRoot = Utils.FindChild(element.transform, "$part_stars_root");
-            
-            Utils.FindChild(element.transform, "$part_item_icon").GetComponent<Image>().sprite = data.GetIcon();;
-            Utils.FindChild(element.transform, "$part_item_stack").GetComponent<Text>().text = data.m_stack.ToString(CultureInfo.CurrentCulture);
-            Utils.FindChild(element.transform, "$part_item_name").GetComponent<Text>().text = LocalizedName;;
-            Utils.FindChild(element.transform, "$part_price_icon").GetComponent<Image>().sprite = currencyComponent.m_itemData.GetIcon();
-            if (community)
-            {
-                Utils.FindChild(element.transform, "$part_merchant_name").GetComponent<Text>().text = user.GetHoverName();
-            }
-            if (data.m_quality > 1)
-            {
-                for (int index = 0; index < data.m_quality; ++index) Object.Instantiate(MarketStar, StarsRoot);
-            }
-            if (Utils.FindChild(element.transform, "$part_price").TryGetComponent(out InputField ItemPrice))
-            {
-                ItemPrice.characterLimit = currencyComponent.m_itemData.m_shared.m_maxStackSize.ToString().Length;
-                ItemPrice.onValueChanged.AddListener(SetPrice);
-            }
 
-            if (Utils.FindChild(element.transform, "$part_sell_button").TryGetComponent(out Button SellButton))
-            {
-                SellButton.onClick.AddListener(() =>
+            if (!element.TryGetComponent(out SellElement component)) continue;
+            component.Setup(user, data, () =>
                 {
+                    GameObject Currency = Methods.TryGetPrefab(MarketStallPlugin._Currency.Value);
+                    if (!Currency.TryGetComponent(out ItemDrop currencyComponent)) return;
                     if (!data.m_dropPrefab) return;
-                    if (!data.m_dropPrefab.TryGetComponent(out ItemDrop component)) return;
+                    if (!data.m_dropPrefab.TryGetComponent(out ItemDrop currencyItemDrop)) return;
 
                     int MarketCount = community 
                         ? CurrentCommunityMarket == null ? 0 : CommunityMarket.GetMarketData(CurrentCommunityMarket).Count 
@@ -161,14 +139,14 @@ public static class Marketplace
                         return;
                     }
 
-                    if (!SellItem(user, component, data, data.m_stack, price, currencyComponent, znv, community)) return;
+                    if (!SellItem(user, currencyItemDrop, data, data.m_stack, price, currencyComponent, znv, community)) return;
                     UpdateSellMarket(znv, user, filter, community);
                     price = 1;
-                });
-            }
+                },
+                community);
         }
     }
-    private static void SetPrice(string input)
+    public static void SetPrice(string input)
     {
         price = int.TryParse(input, out int value) ? value : 1;
     }
@@ -224,31 +202,16 @@ public static class Marketplace
 
             if (!LocalizedName.ToLower().Contains(filter.ToLower())) continue;
             
-            GameObject element = Object.Instantiate(community ? m_communityBuyItem : m_BuyItem, community ? CommunityListRoot : ListRoot);
             GameObject currencyPrefab = ObjectDB.instance.GetItemPrefab(item.m_currency);
             if (!currencyPrefab.TryGetComponent(out ItemDrop currencyItemDrop)) continue;
-            Transform StarsRoot = Utils.FindChild(element.transform, "$part_stars_root");
+            GameObject element = Object.Instantiate(community ? m_communityBuyItem : m_BuyItem, community ? CommunityListRoot : ListRoot);
+            if (!element.TryGetComponent(out BuyElement component)) continue;
             
-            Utils.FindChild(element.transform, "$part_item_icon").GetComponent<Image>().sprite = prefabItemDrop.m_itemData.GetIcon();
-            Utils.FindChild(element.transform, "$part_item_name").GetComponent<Text>().text = LocalizedName;
-            Utils.FindChild(element.transform, "$part_price_icon").GetComponent<Image>().sprite = currencyItemDrop.m_itemData.GetIcon();
-            Utils.FindChild(element.transform, "$part_price").GetComponent<Text>().text = item.m_price == 0 ? Localization.instance.Localize("$market_free") : item.m_price.ToString(CultureInfo.CurrentCulture);
-            Utils.FindChild(element.transform, "$part_buy_button").GetComponent<Button>().onClick.AddListener(() =>
+            component.Setup(prefabItemDrop.m_itemData, currencyItemDrop.m_itemData.GetIcon(), item, () =>
             {
                 if (!BuyItem(user, prefabItemDrop, item, currencyItemDrop, znv, community)) return;
                 UpdateBuyMarket(znv, user, filter, community);
-            });;
-            Utils.FindChild(element.transform, "$part_item_stack").GetComponent<Text>().text = item.m_stack.ToString(CultureInfo.CurrentCulture);
-
-            if (community)
-            {
-                Utils.FindChild(element.transform, "$part_merchant_name").GetComponent<Text>().text = item.m_merchant;
-            }
-            
-            if (item.m_quality > 1)
-            {
-                for (int index = 0; index < item.m_quality; ++index) Object.Instantiate(MarketStar, StarsRoot);
-            }
+            }, community);
         }
     }
     private static bool BuyItem(Humanoid user, ItemDrop item, MarketData.MarketTradeItem data, ItemDrop currency, ZNetView znv, bool community = false)
@@ -272,12 +235,11 @@ public static class Marketplace
             Methods.ShowMessage(user, "$your_inventory_is_full");
             return false;
         }
-        ItemDrop.ItemData PurchasedItem = user.GetInventory().AddItem(item.name, data.m_stack, data.m_quality, item.m_itemData.m_variant, 0L, data.m_crafter);
+        ItemDrop.ItemData PurchasedItem = user.GetInventory().AddItem(item.name, data.m_stack, data.m_quality, item.m_itemData.m_variant, data.m_crafterID, data.m_crafter);
         if (PurchasedItem == null) return false;
         var deserializer = new DeserializerBuilder().Build();
         var customData = deserializer.Deserialize<Dictionary<string, string>>(data.m_customData);
         PurchasedItem.m_customData = customData;
-        
         Methods.ShowMessage(user, $"$market_you_purchased {itemName} $market_for {data.m_price} {currencyName}", item.m_itemData.GetIcon());
         user.GetInventory().RemoveItem(currency.m_itemData.m_shared.m_name, data.m_price);
 
@@ -294,16 +256,19 @@ public static class Marketplace
     private static void SetMarketGUI(InventoryGui instance)
     {
         if (!instance) return;
-        
         MarketGUI = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Market_GUI"), instance.transform);
         m_BuyItem = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Market_Item"));
+        m_BuyItem.AddComponent<BuyElement>();
         m_SellItem = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Market_Sell"));
+        m_SellItem.AddComponent<SellElement>();
         MarketStar = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Market_Star"));
         MarketGUI.SetActive(false);
         ListRoot = Utils.FindChild(MarketGUI.transform, "$part_Content").GetComponent<RectTransform>();
         CommunityMarketGUI = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("CommunityMarket_GUI"), instance.transform);
         m_communityBuyItem = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Community_Market_Item"));
+        m_communityBuyItem.AddComponent<BuyElement>();
         m_communitySellItem = Object.Instantiate(LoadAssets._assets.LoadAsset<GameObject>("Community_Market_Sell"));
+        m_communitySellItem.AddComponent<SellElement>();
         CommunityMarketGUI.SetActive(false);
         CommunityListRoot = Utils.FindChild(CommunityMarketGUI.transform, "$part_Content").GetComponent<RectTransform>();
 
@@ -462,17 +427,19 @@ public static class Marketplace
     {
         MarketGUI.SetActive(false);
         CommunityMarketGUI.SetActive(false);
-        if (Market.m_currentMarket != null)
+        if (Market.m_currentMarket is not null)
         {
-            Market.m_currentMarket._znv.InvokeRPC(nameof(Market.RPC_SetInUse), false);
+            Market.m_currentMarket.SetInUse(false);
             Market.m_currentMarket = null;
         }
 
-        if (CommunityMarket.m_currentCommunityMarket != null)
+        if (CommunityMarket.m_currentCommunityMarket is not null)
         {
-            CommunityMarket.m_currentCommunityMarket.m_nview.InvokeRPC(nameof(Market.RPC_SetInUse), false);
+            CommunityMarket.m_currentCommunityMarket.SetInUse(false);
             CommunityMarket.m_currentCommunityMarket = null;
         }
+
+        InventoryGUI_Patches.m_overrideUpdateRecipe = false;
     }
     private static void CollectRevenue()
     {

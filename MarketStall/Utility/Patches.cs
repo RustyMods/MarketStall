@@ -126,13 +126,13 @@ public static class Patches
         {
             if (Marketplace.IsMarketVisible())
             {
-                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy) return;
+                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy || Marketplace.CurrentMarket is null) return;
                 Marketplace.UpdateSellMarket(Marketplace.CurrentMarket, __instance);
             }
 
             if (Marketplace.IsCommunityMarketVisible())
             {
-                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy) return;
+                if (Marketplace.MarketTypeIs is Marketplace.MarketType.Buy || Marketplace.CurrentCommunityMarket is null) return;
                 Marketplace.UpdateSellMarket(Marketplace.CurrentCommunityMarket, __instance, "", true);
             }
         }

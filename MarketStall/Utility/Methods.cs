@@ -8,10 +8,9 @@ public static class Methods
     
     public static GameObject TryGetPrefab(string input, string defaultItem = "Coins")
     {
-       GameObject prefab = ObjectDB.instance.GetItemPrefab(input);
-       if (prefab) return prefab;
-       if (!Coins) Coins = ObjectDB.instance.GetItemPrefab(defaultItem);
-       return Coins;
+        if (ObjectDB.instance.GetItemPrefab(input) is { } prefab) return prefab;
+        if (!Coins) Coins = ObjectDB.instance.GetItemPrefab(defaultItem);
+        return Coins;
     }
 
     public static void ShowMessage(Humanoid player, string message, Sprite? sprite = null)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MarketStall.MarketStall;
 
@@ -12,6 +11,7 @@ public static class MarketData
         public int m_price;
         public int m_stack;
         public int m_quality;
+        public long m_crafterID = 0L;
         public string m_crafter = "";
         public string m_currency = null!;
         public string m_customData = "";

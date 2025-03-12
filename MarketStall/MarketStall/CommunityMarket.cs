@@ -44,6 +44,7 @@ public class CommunityMarket : MonoBehaviour, Hoverable, Interactable
         }
     }
 
+    public void SetInUse(bool use) => m_nview.InvokeRPC(nameof(RPC_SetInUse), use);
     public void RPC_SetInUse(long sender, bool use) => m_inUse = use;
     private void RPC_UpdateMarket(long sender, string data) => m_nview.GetZDO().Set(_MarketData, data);
 
@@ -200,7 +201,7 @@ public class CommunityMarket : MonoBehaviour, Hoverable, Interactable
             return false;
         }
         Marketplace.ShowGUI(m_nview, !alt, true);
-        m_nview.InvokeRPC(nameof(RPC_SetInUse), true);
+        SetInUse(true);
         m_currentCommunityMarket = this;
         return true;
     }
