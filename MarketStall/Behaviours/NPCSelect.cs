@@ -24,7 +24,8 @@ public class NPCSelect : MonoBehaviour, TextReceiver
         m_piece = GetComponent<Piece>();
         m_nview = GetComponent<ZNetView>();
         SetAsPieceLayer();
-        m_currentModel = MarketStallPlugin.defaultModel.Value;
+        if (m_nview.GetZDO() == null || !m_nview.IsValid()) return;
+        m_nview.Register(nameof(RPC_UpdateModel), RPC_UpdateModel);
     }
 
     public void Start()
@@ -32,6 +33,8 @@ public class NPCSelect : MonoBehaviour, TextReceiver
         if (m_nview.GetZDO() == null || !m_nview.IsValid()) return;
         InvokeRepeating(nameof(UpdateModel), 0f, 10f);
     }
+    
+    public void RPC_UpdateModel(long sender) => UpdateModel();
 
     public string GetHoverText()
     {
@@ -40,7 +43,7 @@ public class NPCSelect : MonoBehaviour, TextReceiver
 
     public void UpdateModel()
     {
-        var model = m_nview.GetZDO().GetString(SelectVars.model);
+        var model = m_nview.GetZDO().GetString(SelectVars.model, MarketStallPlugin.defaultModel.Value);
         if (m_currentModel == model) return;
         SetModel(model);
     }
@@ -52,10 +55,18 @@ public class NPCSelect : MonoBehaviour, TextReceiver
             DestroyImmediate(m_selected);
             m_selected = null;
         }
+
+        if (prefabName == "Haldor")
+        {
+            m_haldor.SetActive(true);
+            m_currentModel = "Haldor";
+            return;
+        }
+        
         var prefab = ZNetScene.instance.GetPrefab(prefabName);
         if (prefab == null)
         {
-            MarketStallPlugin.MarketStallLogger.LogDebug($"{prefabName} not found, resetting to default");
+            MarketStallPlugin.MarketStallLogger.LogDebug($"{prefabName} not found, resetting to Haldor");
             m_haldor.SetActive(true);
             m_currentModel = "Haldor";
             m_nview.GetZDO().Set(SelectVars.model, "");
@@ -80,8 +91,6 @@ public class NPCSelect : MonoBehaviour, TextReceiver
             m_selected.SetActive(true);
             ZNetView.m_forceDisableInit = false;
             m_haldor.SetActive(false);
-            
-            m_nview.GetZDO().Set(SelectVars.model, prefabName);
             m_currentModel = prefabName;
             
             SetAsPieceLayer();
@@ -89,7 +98,6 @@ public class NPCSelect : MonoBehaviour, TextReceiver
     }
 
     public bool IsCreator() => m_piece.IsCreator();
-
     
     public bool CanEditModel()
     {
@@ -159,6 +167,7 @@ public class NPCSelect : MonoBehaviour, TextReceiver
 
     public void SetText(string text)
     {
-        SetModel(text);
+        m_nview.GetZDO().Set(SelectVars.model, text);
+        m_nview.InvokeRPC(ZNetView.Everybody, nameof(RPC_UpdateModel));
     }
 }

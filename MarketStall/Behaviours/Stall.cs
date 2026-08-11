@@ -219,7 +219,7 @@ public class Stall : MonoBehaviour, Hoverable, Interactable, TextReceiver
         private static void Postfix(Piece __instance, ref bool __result)
         {
             if (!__instance.GetComponent<Stall>()) return;
-            __result &= __instance.IsCreator();
+            __result &= __instance.IsCreator() || ZNet.instance.LocalPlayerIsAdminOrHost();
         }
     }
 

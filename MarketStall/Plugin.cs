@@ -37,15 +37,29 @@ public class MarketStallPlugin : BaseUnityPlugin
     {
         Localizer.Load();
         
-        _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On,
+        _serverConfigLocked = config(
+            "1 - General", 
+            "Lock Configuration", 
+            Toggle.On,
             "If on, the configuration is locked and can be changed by server admins only.");
         _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
-        transparentPanel = config("2 - UI", "Transparent Panel", Toggle.Off,
-            "If on, market stall panel will become transparent", false);
+        transparentPanel = config(
+            "2 - UI", 
+            "Transparent Panel", 
+            Toggle.Off,
+            "If on, market stall panel will become transparent", 
+            false);
         transparentPanel.SettingChanged += (_, _) => MarketGUI.instance?.UpdatePanelBackground();
-        filters = config("3 - Settings", "Filters", "SwordCheat,SledgeCheat",
+        filters = config(
+            "3 - Settings", 
+            "Filters", 
+            "SwordCheat,SledgeCheat",
             new ConfigDescription("List items that cannot be put up for sale", null, StringListConfig.attributes));
-        panelPos = config("2 - UI", "Panel Position", new Vector2(960, 540), "Set panel position");
+        panelPos = config(
+            "2 - UI", 
+            "Panel Position",
+            new Vector2(960, 540), 
+            "Set panel position");
         panelPos.SettingChanged += (_, _) =>
         {
             if (MarketGUI.instance)
@@ -53,10 +67,20 @@ public class MarketStallPlugin : BaseUnityPlugin
                 MarketGUI.instance.transform.position = panelPos.Value;
             }
         };
-        creatorLocked = config("3 - Settings", "Only Creator Can Sell", Toggle.Off,
+        creatorLocked = config(
+            "3 - Settings", 
+            "Only Creator Can Sell",
+            Toggle.Off,
             "If on, only creator can put items for sale");
-        defaultModel = config("3 - Settings", "Default Model", "Haldor", "Set default model");
-        onlyAdminCanChangeModel = config("3 - Settings", "Only Admin Can Change Model", Toggle.Off,
+        defaultModel = config(
+            "3 - Settings", 
+            "Default Model",
+            "Haldor", 
+            "Set default model");
+        onlyAdminCanChangeModel = config(
+            "3 - Settings", 
+            "Only Admin Can Change Model",
+            Toggle.Off,
             "If on, only admin can change models");
         
         Assembly assembly = Assembly.GetExecutingAssembly();

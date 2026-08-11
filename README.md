@@ -1,51 +1,96 @@
-# Market Stalls
-A buildable market to sell your goods at any time.
-## Changelog
-| `Version`  | `Update Notes`    |
-|------------|-------------------|
-| 1.0.0      | - Initial release |
+# Market Stalls 2.0.0
+
+Buildable market stalls with customizable NPC vendors.
+
+Version 2.0.0 completely overhauls the plugin's presentation. Market stalls are now represented by NPCs instead of tables, providing a more immersive way to buy and sell items.
+
 ## Features
-- Buildable Market
-- Owners can put items up for sale
-- Users can purchase items
-- Configurable currency
-- Optional sales tax
-- Collectable revenue
-## Configurations
-- Transparent Background - For a cleaner look to pair with MinimalUI
-- Currency - Prefab Name, if invalid, defaults to coins
-- Max Sales - Total amount of items allowed to put up for sale
-- Sales Taxes
-  - Fee Percentage - Calculated based on price of item
-  - Minimum Fee - Minimum fee, so to always at least cost 1 coin
-- Market Piece recipe
-### Notes
-- Character limit of price entry is determined by max stack size of currency item
-  
-    ( ex: Coins max stack size is 999, thus max amount to put an item for sale is 999 )
 
-    ( ex: Amber max stack size is 10, thus max amount to put an item for sale is 99 )
-  
-    This is to avoid users input being too large
-- Organize your player inventory to display available items to put up for sale in the stack size you desire
-- Revenue is dispersed in increments of max stack size of currency
-  
-    ( ex: Coins max stack size is 999, thus you can only extract 999 coins at a time )
-  
-    ( ex: Amber max stack size is 10, thus you can only extract 10 amber at a time )
+* Build market stalls as placeable pieces
+* Customize the NPC model used by a stall
+* List items for sale
+* Set custom prices for listed items
+* Collect revenue from completed sales
+* Server-synced configuration
 
-![](https://i.imgur.com/vygiCoK.png)
-![](https://i.imgur.com/GQ4QWbf.png)
-![](https://i.imgur.com/LrBwJMZ.png)
+## Selling Items
+
+Any player can list items for sale at any market stall, regardless of who built the stall.
+
+Use the `Set Price` button to define the price of an item. Prices can use any item prefab registered in the game.
+
+For example:
+
+```text
+Coins, 50
+```
+
+or:
+
+```text
+SurtlingCore, 1
+```
+
+This allows items to be sold for virtually any item available in the game.
+
+## Stall Ownership
+
+The player who builds a stall is considered its creator.
+
+Only the stall creator or an admin can destroy the stall. This means the creator can potentially destroy a stall containing items or revenue belonging to other players.
+
+Be careful when placing items for sale in a stall owned by another player.
+
+When a stall is destroyed, all items and accumulated revenue are dropped in crates.
+
+## NPC Models
+
+The default model is Haldor, when placing the piece. Once placed, the stall will automatically switch to the defined default model from the configs.
+
+The stall's NPC model can be customized to any prefab registered in the game's `ZNetScene`.
+
+This includes NPCs and other compatible game prefabs, provided they are available in the shared network prefab list.
+
+The ability to edit the model can be restricted to admins through the configuration.
+
+## Configuration
+
+The following options are available:
+
+* Define the resources required to build a market stall
+* Restrict NPC model editing to admins
+* Set the default NPC model
+* Define Items that cannot be put up for sale
+
+All configuration settings are server-synced.
+
+## Revenue
+
+Revenue is tracked per seller.
+
+For example, if Player A lists an item for sale and Player B purchases it, the revenue belongs to Player A. The revenue tab will only display revenue belonging to the player viewing it.
+
+## FAQ
+
+### Why can I not edit the model?
+
+Only the stall creator can edit the model by default. If model editing is restricted to admins, only admins can change it.
+
+### My friend put an item up for sale and it sold, but I cannot collect the revenue. Why?
+
+Revenue is assigned to the player who listed the item for sale. Each player can only view and collect their own revenue.
+
+### Can I set the model to anything in the game?
+
+Yes, provided the prefab is registered in the game's `ZNetScene`.
+
+### What happens when I destroy a stall containing items or revenue?
+
+The stall will drop crates containing all items and accumulated revenue stored within it.
 
 
-<h2 style="text-align: center">Contact Information</h2>
-<div style="text-align: center">
-    <div>For Questions or Comments, find <span style="color:orange">Rusty</span> in the Odin Plus Team Discord</div>
-    <a href="https://discord.gg/v89DHnpvwS"><img src="https://i.imgur.com/XXP6HCU.png" alt=""></a>
-    <div>Or come find me at the <span style="color: orange"><a href="https://discord.gg/fB8aHSfA8B">Modding Corner</a></span> </div>
-    <div>If you enjoy this mod and want to support me: <a href="https://paypal.me/mpei">PayPal</a> </div>
-    <img src="https://i.imgur.com/rbNygUc.png" alt="" width="150">
-    <img src="https://i.imgur.com/VZfZR0k.png" alt="https://www.buymeacoffee.com/peimalcolm2" width="150">
-</div>
-
+## Screenshots
+![](https://github.com/RustyMods/MarketStall/blob/master/MarketStall/Screenshots/buy_panel.png?raw=true)
+![](https://github.com/RustyMods/MarketStall/blob/master/MarketStall/Screenshots/sell_panel.png?raw=true)
+![](https://github.com/RustyMods/MarketStall/blob/master/MarketStall/Screenshots/tooltip_preview.png?raw=true)
+![](https://github.com/RustyMods/MarketStall/blob/master/MarketStall/Screenshots/piece_preview.png?raw=true)
