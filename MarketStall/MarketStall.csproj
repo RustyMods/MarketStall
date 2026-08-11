@@ -12,8 +12,8 @@
         <AssemblyName>MarketStall</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>10</LangVersion>
-        <Nullable>enable</Nullable>
+        <LangVersion>12</LangVersion>
+        <Nullable>disable</Nullable>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -76,6 +76,9 @@
         <Reference Include="BepInEx">
             <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
         </Reference>
+        <Reference Include="gui_framework">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\gui_framework_publicized.dll</HintPath>
+        </Reference>
         <Reference Include="ServerSync">
             <HintPath>Libs\ServerSync.dll</HintPath>
         </Reference>
@@ -112,48 +115,65 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="MarketStall\CommunityMarket.cs" />
-        <Compile Include="MarketStall\InventoryGUI_Patches.cs" />
-        <Compile Include="MarketStall\Market.cs" />
-        <Compile Include="MarketStall\MarketData.cs" />
+        <Compile Include="Behaviours\NPCSelect.cs" />
+        <Compile Include="Behaviours\RevenueData.cs" />
+        <Compile Include="Behaviours\Stall.cs" />
+        <Compile Include="Behaviours\MarketInventory.cs" />
+        <Compile Include="Managers\BundleManager.cs" />
+        <Compile Include="Managers\FontManager.cs" />
         <Compile Include="Managers\LocalizationManager.cs" />
-        <Compile Include="Managers\MarketStallPieces.cs" />
-        <Compile Include="Managers\MaterialReplacer.cs" />
         <Compile Include="Managers\PieceManager.cs" />
+        <Compile Include="Managers\PrefabManager.cs" />
+        <Compile Include="Managers\StringList.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="UI\BuyElement.cs" />
-        <Compile Include="UI\CacheAssets.cs" />
-        <Compile Include="UI\Marketplace.cs" />
-        <Compile Include="UI\SellElement.cs" />
-        <Compile Include="Utility\LoadAssets.cs" />
-        <Compile Include="Utility\Methods.cs" />
-        <Compile Include="Utility\Patches.cs" />
-        <Compile Include="Utility\Filters.cs" />
+        <Compile Include="UI\ButtonElement.cs" />
+        <Compile Include="UI\Currency.cs" />
+        <Compile Include="UI\HoverSelectable.cs" />
+        <Compile Include="UI\ItemElement.cs" />
+        <Compile Include="UI\ItemView.cs" />
+        <Compile Include="UI\MarketGUI.cs" />
+        <Compile Include="UI\Patches.cs" />
+        <Compile Include="Utility\Utils.cs" />
         <Compile Include="VersionHandshake.cs" />
     </ItemGroup>
     <ItemGroup>
         <None Include="App.config" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="..\..\..\bundles_2024\marketstallbundle2">
-          <Link>assets\marketstallbundle2</Link>
-        </EmbeddedResource>
         <Content Include=".gitignore" />
+        <Content Include="D:\VALHEIM\Bundles\bundles_2024\marketstallbundle2">
+          <Link>assets\marketstallbundle2</Link>
+        </Content>
+        <Content Include="D:\VALHEIM\Bundles\bundles_2024\marketstallbundle2.manifest">
+          <Link>assets\marketstallbundle2.manifest</Link>
+        </Content>
+        <Content Include="D:\VALHEIM\Bundles\bundles_2024\marketstall_ui">
+          <Link>assets\marketstall_ui</Link>
+        </Content>
+        <Content Include="D:\VALHEIM\Bundles\bundles_2024\marketstall_ui.manifest">
+          <Link>assets\marketstall_ui.manifest</Link>
+        </Content>
+        <EmbeddedResource Include="D:\VALHEIM\RIPS\LATEST\AssetBundles\StandaloneWindows\marketstall_bundle">
+          <Link>assets\marketstall_bundle</Link>
+        </EmbeddedResource>
+        <Content Include="D:\VALHEIM\RIPS\LATEST\AssetBundles\StandaloneWindows\marketstall_bundle.manifest">
+          <Link>assets\marketstall_bundle.manifest</Link>
+        </Content>
         <Content Include="environment.props" />
         <Content Include="ILRepack.targets" />
-        <Content Include="Libs\PieceManager.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <Content Include="Libs\ServerSync.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <EmbeddedResource Include="translations\English.yml" />
-        <EmbeddedResource Include="translations\French.yml" />
-        <EmbeddedResource Include="translations\Russian.yml" />
-        <EmbeddedResource Include="translations\Chinese.yml" />
-        <EmbeddedResource Include="translations\Spanish.yml" />
-        <Content Include="Tutorials\README.md" />
+        <Content Include="Screenshots\sell_panel.png" />
+        <Content Include="Screenshots\buy_panel.png" />
+        <Content Include="Screenshots\piece_preview.png" />
+        <Content Include="Screenshots\tooltip_preview.png" />
+        <Content Include="Thunderstore\CHANGELOG.md" />
+        <Content Include="Thunderstore\manifest.json" />
+        <Content Include="Thunderstore\icon.png" />
+        <Content Include="Thunderstore\README.md" />
         <Content Include="UpdateManifest.ps1" />
     </ItemGroup>
     <ItemGroup>

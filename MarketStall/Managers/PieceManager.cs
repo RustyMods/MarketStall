@@ -12,6 +12,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using JetBrains.Annotations;
+using MarketStall.Managers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -290,6 +291,14 @@ public class BuildPiece
     public BuildPiece(AssetBundle bundle, string prefabName)
     {
         Prefab = PiecePrefabManager.RegisterPrefab(bundle, prefabName);
+        registeredPieces.Add(this);
+    }
+
+    public BuildPiece(GameObject prefab)
+    {
+        Prefab = prefab;
+        PrefabManager.Register(prefab);
+        PiecePrefabManager.RegisterPrefab(prefab);
         registeredPieces.Add(this);
     }
 
@@ -1356,7 +1365,7 @@ public static class PiecePrefabManager
     static PiecePrefabManager()
     {
         Harmony harmony = new("org.bepinex.helpers.PieceManager");
-        harmony.Patch(AccessTools.DeclaredMethod(typeof(FejdStartup), nameof(FejdStartup.Awake)), new HarmonyMethod(AccessTools.DeclaredMethod(typeof(BuildPiece), nameof(BuildPiece.Patch_FejdStartup))));
+        // harmony.Patch(AccessTools.DeclaredMethod(typeof(FejdStartup), nameof(FejdStartup.Awake)), new HarmonyMethod(AccessTools.DeclaredMethod(typeof(BuildPiece), nameof(BuildPiece.Patch_FejdStartup))));
         harmony.Patch(AccessTools.DeclaredMethod(typeof(Localization), nameof(Localization.LoadCSV)), postfix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(LocalizeKey), nameof(LocalizeKey.AddLocalizedKeys))));
         harmony.Patch(AccessTools.DeclaredMethod(typeof(Localization), nameof(Localization.SetupLanguage)), postfix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(LocalizationCache), nameof(LocalizationCache.LocalizationPostfix))));
         harmony.Patch(AccessTools.DeclaredMethod(typeof(ObjectDB), nameof(ObjectDB.Awake)), postfix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager), nameof(Patch_ObjectDBInit))));
@@ -1404,13 +1413,18 @@ public static class PiecePrefabManager
         return allshits;
     }
 
-    private static readonly List<GameObject> piecePrefabs = new();
+    public static readonly List<GameObject> piecePrefabs = new();
     private static readonly Dictionary<string, Piece.PieceCategory> PieceCategories = new();
     private static readonly Dictionary<string, Piece.PieceCategory> OtherPieceCategories = new();
     private const string _hiddenCategoryMagic = "(HiddenCategory)";
 
     public static GameObject RegisterPrefab(string assetBundleFileName, string prefabName, string folderName = "assets") => RegisterPrefab(RegisterAssetBundle(assetBundleFileName, folderName), prefabName);
 
+    public static GameObject RegisterPrefab(GameObject prefab)
+    {
+        piecePrefabs.Add(prefab);
+        return prefab;
+    }
     public static GameObject RegisterPrefab(AssetBundle assets, string prefabName)
     {
         if (assets == null)

@@ -1,0 +1,9 @@
+{
+  "name": "MarketStall",
+  "version_number": "2.0.0",
+  "website_url": "https://github.com/RustyMods/Almanac",
+  "description": "Buildable local market stall npc",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2333"
+  ]
+}
